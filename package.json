@@ -1,0 +1,26 @@
+{
+  "name": "real-time-web-1819",
+  "version": "1.0.0",
+  "description": "asdfasdf",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maanlamp/real-time-web-1819.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/maanlamp/real-time-web-1819/issues"
+  },
+  "homepage": "https://github.com/maanlamp/real-time-web-1819#readme",
+  "dependencies": {
+    "compression": "^1.7.4",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "socket.io": "^2.2.0"
+  }
+}

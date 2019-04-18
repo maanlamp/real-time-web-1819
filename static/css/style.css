@@ -1,0 +1,42 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	overflow: hidden;
+	background: #F9F9F9;
+}
+
+#register {
+	color: white;
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	backdrop-filter: blur(2px);
+	flex-wrap: wrap;
+	flex-direction: column;
+	transition: opacity 1s ease;
+} #register.invalid::after {
+	color: red;
+	display: block;
+	text-align: center;
+	content: "Username already exists.";
+} #register>* {
+	flex: 0 0 33%;
+} #register input {
+	height: 1rem;
+	padding: 1rem;
+	border-radius: 999rem;
+	border: none;
+	font: inherit;
+	outline: none;
+} #register.fadeout {
+	opacity: 0;
+}
