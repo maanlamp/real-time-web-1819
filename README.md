@@ -2,7 +2,7 @@
 
 Ik ben een real-time "Asteroids"-achtige multiplayer game aan het maken.
 
-![Pew Pew!](./static/images/test.png)
+![Pew Pew!](./demo.png)
 
 _**PEW PEW!**_
 

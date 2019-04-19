@@ -40,3 +40,7 @@ body {
 } #register.fadeout {
 	opacity: 0;
 }
+
+img {
+	opacity: 0;
+}

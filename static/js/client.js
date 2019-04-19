@@ -1,11 +1,11 @@
 "use strict";
 
-import { loadImage, loadJSON } from "./modules/Load.js";
 import { fpsFromDeltatime } from "./modules/Frames.js";
 import ResetableTimeout from "./modules/ResetableTimeout.js";
 import Canvas from "./modules/Canvas.js";
 import Game from "./modules/Game.js";
 import keybinds from "/data/keybinds.js";
+import Player from "./modules/Player.js";
 import Vector2 from "./modules/Vector2.js";
 
 const socket = io();
@@ -19,16 +19,14 @@ void async function createMainView () {
 		timeout: 200,
 		handler () {canvas.resize(window)}
 	});
-
-	document.body.appendChild(canvas.element);
+	document.body.prepend(canvas.element);
 	window.addEventListener("resize", () => resizeTimeout.reset());
-
 	game
 		.bindkeys(keybinds)
 		.set("viewport", canvas)
-		.set("views", new Array())
-		.set("players", new Array())
-		.add("views", game.get("viewport"))
+		.set("room", {width: 100, height: 100})
+		.set("others", new Array())
+		.set("sprites", Array.from(document.querySelectorAll("img.sprite")))
 		.enter("viewport")
 			.clear()
 			.style(`
@@ -41,66 +39,113 @@ void async function createMainView () {
 		//DEBUG
 		game.get("viewport").__CTX.strokeStyle = "lime";
 		game.get("viewport").__CTX.textAlign = "center";
-		window.GLOBALSPRITETEST = await loadImage("images/test.png");
 }();
 
+const radToDeg = Math.PI / 180;
+const sprites = game.get("sprites");
+const ctx = game.get("viewport").__CTX;
 function draw (player) {
 	if (!player) return;
-	const ctx = game.get("viewport").__CTX;
-	player.direction += 1;
 	ctx.save();
 	ctx.translate(player.position.x, player.position.y);
-	ctx.strokeText(player.name, 0, window.GLOBALSPRITETEST.height/2 + 16);
-	ctx.rotate(player.direction * Math.PI / 180);
-	ctx.drawImage(window.GLOBALSPRITETEST, -window.GLOBALSPRITETEST.width/2, -window.GLOBALSPRITETEST.height/2)
+	ctx.strokeText(player.name, 0, sprites[player.sprite].height/2 + 16);
+	ctx.rotate(player.direction * radToDeg);
+	ctx.drawImage(sprites[player.sprite], -sprites[player.sprite].width/2, -sprites[player.sprite].height/2)
 	ctx.restore();
 }
 
+
+let fwd = false;
+let bwd = false;
+let lft = false;
+let rgt = false;
+let spd = 0;
+const acc = 10;
+const frc = 0; //SET TO HIGHER FOR FRICTION, BUT THERES NO FRICTION IN SPACE!!
+const maxSpeed = 10;
+window.addEventListener("keydown", event => {
+	switch (event.key.toLowerCase()) {
+		case "w": {return fwd = true};
+		case "a": {return lft = true};
+		case "s": {return bwd = true};
+		case "d": {return rgt = true};
+	}
+});
+window.addEventListener("keyup", event => {
+	switch (event.key.toLowerCase()) {
+		case "w": {return fwd = false};
+		case "a": {return lft = false};
+		case "s": {return bwd = false};
+		case "d": {return rgt = false};
+	}
+});
 void function tick (game) {
 	const deltaTime = game.deltaTime();
-
+	const player = game.get("player");
+	if (player) {
+		player.position = Vector2.from(player.position);
+		if (lft) player.direction -= deltaTime * 350;
+		if (rgt) player.direction += deltaTime * 350;
+		if (bwd && spd > 0) spd -= acc * deltaTime;
+		if (fwd && spd < maxSpeed) spd += acc * deltaTime;
+		else if (spd > 0) spd -= frc;
+		else if (spd < 0) spd = 0;
+		player.position.add(Vector2.lenDir(spd, player.direction - 90));
+	}
 	game
 		.enter("viewport")
 			.fillRect()
 			.exit()
-		.enter("players")
+		.enter("others")
 			.forEach(player => draw(player));
-
+	draw(game.get("player"));
 	game
 		.enter("viewport")
 			.text(fpsFromDeltatime(deltaTime), 6, 18, "stroke");
-		
-	const player = game.get("player");
-	if (player) socket.emit("update", player);
-
 	return requestAnimationFrame(timestamp => {
 		game.update(timestamp);
 		tick(game)});
 }(game);
 
 const registerWall = document.querySelector("#register");
-const register = registerWall.querySelector("input");
-registerWall.addEventListener("transitionend", () => {
-	registerWall.remove();
-});
-register.addEventListener("keypress", event => {
+const nameInput = registerWall.querySelector("input");
+registerWall.addEventListener("transitionend", registerWall.remove);
+nameInput.addEventListener("keypress", event => {
 	if (event.key.toLowerCase() !== "enter") return;
-	socket.emit("register", register.value);
+	socket.emit("try register", new Player(
+		nameInput.value,
+		Math.floor(Math.random() * game.get("room").width),
+		Math.floor(Math.random() * game.get("room").height),
+		Math.floor(Math.random() * 359),
+		Math.floor(Math.random() * sprites.length)
+	));
 });
 
-socket.on("registered", name => {
+socket.on("announce joined", name => {
 	console.log(`${name} joined the game!`);
-	game.set("player", {
-		name,
-		position: Vector2.random(window.innerWidth, window.innerHeight),
-		direction: Math.floor(Math.random()*359),
-		sprite: window.GLOBALSPRITETEST
-	});
-	registerWall.classList.add("fadeout");
-	register.disabled = true;
-}).on("invalid", name => {
+});
+
+socket.on("announce left", name => {
+	console.log(`${name} left the game!`);
+});
+
+socket.on("invalid name", name => {
 	console.error(`Username '${name}' already exists!`);
 	registerWall.classList.add("invalid");
-}).on("update", users => {
-	game.set("players", users);
+});
+
+const second = 1000;
+const netTickRate = 1 / 30 * second;
+socket.on("registered", player => {
+	game.set("player", player);
+	registerWall.classList.remove("invalid");
+	registerWall.classList.add("fadeout");
+	nameInput.disabled = true;
+	setInterval(() => {
+		socket.emit("upload player", game.get("player"));
+	}, netTickRate);
+});
+
+socket.on("update others", others => {
+	game.set("others", others);
 });
