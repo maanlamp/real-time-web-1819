@@ -2,7 +2,7 @@
 
 Ik ben een real-time "Asteroids"-achtige multiplayer game aan het maken.
 
-![Pew Pew!](./demo.png)
+![Pew Pew!](./demo.gif)
 
 _**PEW PEW!**_
 
@@ -11,7 +11,7 @@ _**PEW PEW!**_
 Voor het spel dat ik wil maken, wil ik random death messages halen uit een API. Als een speler dan een andere speler kapotschiet verschijnt er ergens op het scherm een grappige reden waarom. Ik zat te denken aan iets als [Perchance Deth Generator](https://perchance.org/random-cause-of-death-generator) of iets dergelijks. Ik heb nog steeds geen geweldig idee voor API.
 
 ### Data lifecycle
-![Pew Pew!](./static/images/lifecycle.png)
+![Pew Pew!](./lifecycle.png)
 
 - Een client vraagt eerst de gebruiker om een username in te vullen.
 - Via de `register` event vraagt de client aan de server of die username oké is.
