@@ -6,16 +6,16 @@ export default class Vector2 {
 
 	static random (xMax = 1, yMax = xMax) {
 		return new Vector2(
-			Math.floor(Math.random() * xMax), 
+			Math.floor(Math.random() * xMax),
 			Math.floor(Math.random() * yMax));
 	}
-	
+
 	static lenDir (len, angle) {
 		const x = len * Math.cos(Vector2.radians(angle))
 		const y = len * Math.sin(Vector2.radians(angle));
 		return new Vector2(x, y);
 	}
-	
+
 	static radians (degrees) {
 		return degrees * Math.PI / 180;
 	}
@@ -23,7 +23,7 @@ export default class Vector2 {
 	static degrees (radians) {
 		return radians * 180 / Math.PI;
 	}
-	
+
 	round (other) {
 		this.set(Math.round(this.x), Math.round(this.y));
 		return this;
@@ -31,7 +31,7 @@ export default class Vector2 {
 	rounded (other) {
 		return this.copy().round(other);
 	}
-	
+
 	ceil (other) {
 		this.set(Math.ceil(this.x), Math.ceil(this.y));
 		return this;
@@ -39,7 +39,7 @@ export default class Vector2 {
 	ceiled (other) {
 		return this.copy().ceil(other);
 	}
-	
+
 	floor (other) {
 		this.set(Math.floor(this.x), Math.floor(this.y));
 		return this;
@@ -47,9 +47,9 @@ export default class Vector2 {
 	floored (other) {
 		return this.copy().floor(other);
 	}
-	
+
 	set (x, y = null) {
-		if (x instanceof Vector2) {
+		if (x.x && x.y) {
 			this.x = x.x;
 			this.y = x.y;
 		} else {
@@ -58,15 +58,15 @@ export default class Vector2 {
 		}
 		return this;
 	}
-	
+
 	equals (other) {
 		return (this.x === other.x && this.y === other.y);
 	}
-	
+
 	fuzzyEquals (other) {
 		return (this.rounded().x === other.rounded().x && this.rounded().y === other.rounded().y);
 	}
-	
+
 	interpolate (other, factor) {
 		const value = this.add(other.subtracted(this).multiplied(factor));
 		return value;
@@ -74,22 +74,22 @@ export default class Vector2 {
 	interpolated (other, factor) {
 		return this.copy().interpolate(other, factor);
 	}
-	
+
 	lerp (other) {
 		return this.interpolate(other, .5);
 	}
 	lerped (other) {
 		return this.interpolated(other, .5);
 	}
-	
+
 	get magnitude  () {
 		return Math.sqrt(this.x ** 2 + this.y ** 2);
 	}
-	
+
 	distance (other) {
 		return this.subtracted(other).magnitude;
 	}
-	
+
 	angle (other, mode = "degrees") {
 		const deltaX = other.x - this.x;
 		const deltaY = other.y - this.y;
@@ -103,23 +103,23 @@ export default class Vector2 {
 			throw new Error(`Unknown angle mode "${mode}"`);
 		}
 	}
-	
+
 	normalise () {
 		this.divide(this.magnitude());
 	}
-	
+
 	get normalised () {
 		return this.copy().normalise();
 	}
-	
+
 	scale (other) {
 		this.multiply(other);
 	}
-	
+
 	scaled (other) {
 		return this.copy().multiply(other);
 	}
-	
+
 	copy (property) {
 		if (typeof property === "string") {
 			switch (property) {
@@ -130,7 +130,7 @@ export default class Vector2 {
 		}
 		return new Vector2(this.x, this.y);
 	}
-	 
+
 	static from (other) {
 		if (other instanceof Array) {
 			if (other.length > 2) {
@@ -149,7 +149,7 @@ export default class Vector2 {
 		}
 		throw new Error(`Cannot create Vector2 from "${other}"`);
 	}
-	
+
 	subtract (other, otherOther = null) {
 		if (other instanceof Vector2) {
 			this.x -= other.x;
@@ -170,7 +170,7 @@ export default class Vector2 {
 	subtracted (other, otherOther = null) {
 		return this.copy().subtract(other, otherOther);
 	}
-	
+
 	multiply (other, otherOther = null) {
 		if (other instanceof Vector2) {
 			this.x *= other.x;
@@ -191,7 +191,7 @@ export default class Vector2 {
 	multiplied (other, otherOther = null) {
 		return this.copy().multiply(other, otherOther);
 	}
-	
+
 	divide (other, otherOther = null) {
 		if (other instanceof Vector2) {
 			this.x /= other.x || 1;
@@ -212,7 +212,7 @@ export default class Vector2 {
 	divided (other, otherOther = null) {
 		return this.copy().divide(other, otherOther);
 	}
-	
+
 	add (other, otherOther = null) {
 		if (other instanceof Vector2) {
 			this.x += other.x;

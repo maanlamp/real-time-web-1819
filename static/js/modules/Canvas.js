@@ -116,6 +116,12 @@ export default class Canvas {
 		return this;
 	}
 
+	strokeRect (x = 0, y = 0, w = this.width, h = this.height) {
+		this.__CTX.strokeRect(x, y, w, h);
+
+		return this;
+	}
+
 	rotate (degrees) {
 		this.__CTX.rotate(degrees * Math.PI / 180);
 		return this;

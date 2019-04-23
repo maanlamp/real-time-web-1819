@@ -6,5 +6,6 @@ export default class Player {
 		this.position = new Vector2(x, y);
 		this.direction = direction;
 		this.sprite = sprite;
+		this.health = 1000;
 	}
 }

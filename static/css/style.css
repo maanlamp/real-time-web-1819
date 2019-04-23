@@ -7,6 +7,17 @@
 body {
 	overflow: hidden;
 	background: #F9F9F9;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	background-color: rgb(17, 15, 22);
+}
+
+.sprites {
+	position: absolute;
+	pointer-events: none;
+	user-select: none;
 }
 
 #register {

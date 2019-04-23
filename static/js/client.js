@@ -1,12 +1,12 @@
 "use strict";
 
 import { fpsFromDeltatime } from "./modules/Frames.js";
-import ResetableTimeout from "./modules/ResetableTimeout.js";
 import Canvas from "./modules/Canvas.js";
 import Game from "./modules/Game.js";
 import keybinds from "/data/keybinds.js";
 import Player from "./modules/Player.js";
 import Vector2 from "./modules/Vector2.js";
+import Bullet from "./modules/Bullet.js";
 
 const socket = io();
 const game = new Game();
@@ -14,29 +14,25 @@ console.log(game);
 window.game = game;
 
 void async function createMainView () {
-	const canvas = new Canvas(window);
-	const resizeTimeout = new ResetableTimeout({
-		timeout: 200,
-		handler () {canvas.resize(window)}
-	});
+	const room = {width: 1900, height: 960};
+	const canvas = new Canvas(room);
 	document.body.prepend(canvas.element);
-	window.addEventListener("resize", () => resizeTimeout.reset());
 	game
 		.bindkeys(keybinds)
 		.set("viewport", canvas)
-		.set("room", {width: 100, height: 100})
+		.set("room", room)
 		.set("others", new Array())
-		.set("sprites", Array.from(document.querySelectorAll("img.sprite")))
+		.set("bullets", new Array())
+		.set("sprites", Array.from(document.querySelectorAll(".sprites img")))
 		.enter("viewport")
 			.clear()
 			.style(`
-				font: 13px "Fira Code";
 				fill: black;
 				image-smoothing: true high;
-				text-align: center`)
-			.exit();
+				text-align: center`);
 
 		//DEBUG
+		game.get("viewport").__CTX.font = "18px sans-serif";
 		game.get("viewport").__CTX.strokeStyle = "lime";
 		game.get("viewport").__CTX.textAlign = "center";
 }();
@@ -44,16 +40,31 @@ void async function createMainView () {
 const radToDeg = Math.PI / 180;
 const sprites = game.get("sprites");
 const ctx = game.get("viewport").__CTX;
-function draw (player) {
+function draw (player, outline = false) {
 	if (!player) return;
 	ctx.save();
 	ctx.translate(player.position.x, player.position.y);
-	ctx.strokeText(player.name, 0, sprites[player.sprite].height/2 + 16);
+	if (outline) {
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(0, 0, Math.max(sprites[player.sprite].width, sprites[player.sprite].height) / 2, 0, Math.PI * 2);
+		ctx.stroke();
+		ctx.lineWidth = 1;
+	}
+	ctx.fillStyle = "lime";
+	ctx.fillText(player.name, 0, sprites[player.sprite].height/2 + 24);
 	ctx.rotate(player.direction * radToDeg);
-	ctx.drawImage(sprites[player.sprite], -sprites[player.sprite].width/2, -sprites[player.sprite].height/2)
+	ctx.drawImage(sprites[player.sprite], -sprites[player.sprite].width/2, -sprites[player.sprite].height/2);
+	ctx.restore();
+
+	ctx.save();
+	ctx.translate(player.position.x, player.position.y + sprites[player.sprite].height/2 + 40);
+	ctx.fillStyle = "gray";
+	ctx.fillRect(-50, 0, 100, 5);
+	ctx.fillStyle = "red";
+	ctx.fillRect(-50, 0, 100 * player.health / 1000, 5);
 	ctx.restore();
 }
-
 
 let fwd = false;
 let bwd = false;
@@ -79,9 +90,15 @@ window.addEventListener("keyup", event => {
 		case "d": {return rgt = false};
 	}
 });
+window.addEventListener("keyup", event => {
+	const player = game.get("player");
+	if ((!player) || event.key !== " ") return;
+	game.add("bullets", new Bullet(player, sprites, game.get("viewport").__CTX));
+});
 void function tick (game) {
 	const deltaTime = game.deltaTime();
 	const player = game.get("player");
+	const room = game.get("room");
 	if (player) {
 		player.position = Vector2.from(player.position);
 		if (lft) player.direction -= deltaTime * 350;
@@ -91,6 +108,11 @@ void function tick (game) {
 		else if (spd > 0) spd -= frc;
 		else if (spd < 0) spd = 0;
 		player.position.add(Vector2.lenDir(spd, player.direction - 90));
+		player.speed = spd;
+		if (player.position.x + sprites[player.sprite].width/2 < 0) player.position.x = room.width + sprites[player.sprite].width/2;
+		if (player.position.x - sprites[player.sprite].width/2 > room.width) player.position.x = -sprites[player.sprite].width/2;
+		if (player.position.y + sprites[player.sprite].height/2 < 0) player.position.y = room.height + sprites[player.sprite].height/2;
+		if (player.position.y - sprites[player.sprite].height/2 > room.height) player.position.y = -sprites[player.sprite].height/2;
 	}
 	game
 		.enter("viewport")
@@ -98,10 +120,23 @@ void function tick (game) {
 			.exit()
 		.enter("others")
 			.forEach(player => draw(player));
-	draw(game.get("player"));
+			game
+			.enter("bullets")
+			.forEach(bullet => {
+				bullet.update(deltaTime);
+				if (bullet.dead) {
+					const bullets = game.get("bullets");
+					const index = bullets.find(b => b.id === bullet.id);
+					bullets.splice(index, 1);
+				}
+			});
+	draw(player, true);
 	game
 		.enter("viewport")
-			.text(fpsFromDeltatime(deltaTime), 6, 18, "stroke");
+			.text(fpsFromDeltatime(deltaTime), 12, 18, "stroke");
+	if (player) game
+		.enter("viewport")
+			.text("Speed: " + String(Math.round(spd * 10)).replace(/^(\d)$/, "0$1"), 46, 40, "stroke");
 	return requestAnimationFrame(timestamp => {
 		game.update(timestamp);
 		tick(game)});
@@ -134,10 +169,10 @@ socket.on("invalid name", name => {
 	registerWall.classList.add("invalid");
 });
 
-const second = 1000;
-const netTickRate = 1 / 30 * second;
+const netTickRate = .25;
 socket.on("registered", player => {
-	game.set("player", player);
+	game
+		.set("player", player);
 	registerWall.classList.remove("invalid");
 	registerWall.classList.add("fadeout");
 	nameInput.disabled = true;
