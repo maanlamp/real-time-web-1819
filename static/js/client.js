@@ -209,5 +209,6 @@ socket.on("update others", others => {
 });
 
 window.kick = function (name) {
+	game.set("others", new Array());
 	socket.emit("kick", name);
 }
