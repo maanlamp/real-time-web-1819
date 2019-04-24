@@ -6,7 +6,7 @@ const io = require("socket.io")(server);
 const compression = require("compression");
 const routes = require("./routes.js");
 const static = express.static;
-const playerDB = new Array();
+const PLAYERS = new Array();
 const bulletDB = new Array();
 
 app
@@ -30,22 +30,22 @@ function inflect (str, count) {
 
 io.on("connection", socket => {
 	socket.on("try register", newPlayer => {
-		if (playerDB.find(player => player.name === newPlayer.name))
+		if (PLAYERS.find(player => player.name === newPlayer.name))
 			return socket.emit("invalid name", newPlayer.name);
-		playerDB.push(newPlayer);
+		PLAYERS.push(newPlayer);
 		socket.emit("registered", Object.assign(newPlayer, {id: socket.id}));
 		io.sockets.emit("announce joined", newPlayer.name);
-		log(`${playerDB.length} ${inflect("player", playerDB.length)} online.`);
+		log(`${PLAYERS.length} ${inflect("player", PLAYERS.length)} online.`);
 	});
 
 	socket.on("upload player", uploadedPlayer => {
-		const index = playerDB.findIndex(player => player.name === uploadedPlayer.name);
-		playerDB.splice(index, 1, uploadedPlayer); //replace old player;
+		const index = PLAYERS.findIndex(player => player.name === uploadedPlayer.name);
+		PLAYERS.splice(index, 1, uploadedPlayer); //replace old player;
 	});
 
 	socket.on("request others", uploadedPlayer => {
 		if (!uploadedPlayer) uploadedPlayer = {};
-		socket.emit("update others", playerDB.filter(player => player.name !== uploadedPlayer.name));
+		socket.emit("update others", PLAYERS.filter(player => player.name !== uploadedPlayer.name));
 	})
 
 	socket.on("upload bullets", bullets => {
@@ -55,11 +55,11 @@ io.on("connection", socket => {
 	});
 
 	socket.on("disconnect", () => {
-		const index = playerDB.findIndex(player => player.id === socket.id);
+		const index = PLAYERS.findIndex(player => player.id === socket.id);
 		if (index === -1) return;
-		const player = playerDB.splice(index, 1)[0];
+		const player = PLAYERS.splice(index, 1)[0];
 		io.sockets.emit("announce left", player.name);
-		log(`${playerDB.length} ${inflect("player", playerDB.length)} online.`);
+		log(`${PLAYERS.length} ${inflect("player", PLAYERS.length)} online.`);
 	});
 
 	socket.on("broadcast hit", (shooter, reciever) => {
