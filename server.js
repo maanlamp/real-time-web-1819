@@ -1,4 +1,4 @@
-const PORT = process.env.port || 1337;
+const PORT = process.env.PORT || 1337;
 const express = require("express");
 const app = express();
 const server = require("http").Server(app);
@@ -40,6 +40,12 @@ io.on("connection", socket => {
 		const index = playerDB.findIndex(player => player.name === uploadedPlayer.name);
 		playerDB.splice(index, 1, uploadedPlayer); //replace old player;
 		socket.emit("update others", playerDB.filter(player => player.name !== uploadedPlayer.name));
+	});
+
+	socket.on("upload bullets", bullets => {
+		bulletDB.length = 0;
+		bulletDB.push(...bullets);
+		socket.broadcast.emit("download bullets", bulletDB);
 	});
 
 	socket.on("disconnect", () => {

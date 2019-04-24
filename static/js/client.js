@@ -94,6 +94,7 @@ window.addEventListener("keyup", event => {
 	const player = game.get("player");
 	if ((!player) || event.key !== " ") return;
 	game.add("bullets", new Bullet(player, sprites, game.get("viewport").__CTX));
+	socket.emit("upload bullets", game.get("bullets"));
 });
 void function tick (game) {
 	const deltaTime = game.deltaTime();
