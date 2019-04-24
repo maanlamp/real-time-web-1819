@@ -61,6 +61,12 @@ io.on("connection", socket => {
 		io.sockets.emit("announce left", player.name);
 		log(`${playerDB.length} ${inflect("player", playerDB.length)} online.`);
 	});
+
+	socket.on("kick", name => {
+		if (!name) return playerDB.length = 0;
+		const index = playerDB.find(player => player.name === name);
+		playerDB.splice(index, 1);
+	})
 });
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}.`));

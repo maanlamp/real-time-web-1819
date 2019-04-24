@@ -207,3 +207,7 @@ setInterval(() => {
 socket.on("update others", others => {
 	game.set("others", others);
 });
+
+window.kick = function (name) {
+	socket.emit("kick", name);
+}
