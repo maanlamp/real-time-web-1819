@@ -63,10 +63,10 @@ io.on("connection", socket => {
 	});
 
 	socket.on("kick", name => {
-		if (!name) return playerDB.length = 0;
+		if (!name) return playerDB = new Array();
 		const index = playerDB.find(player => player.name === name);
 		playerDB.splice(index, 1);
-	})
+	});
 });
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}.`));
