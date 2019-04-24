@@ -93,9 +93,23 @@ window.addEventListener("keyup", event => {
 window.addEventListener("keyup", event => {
 	const player = game.get("player");
 	if ((!player) || event.key !== " ") return;
-	game.add("bullets", new Bullet(player, sprites, game.get("viewport").__CTX));
+	game.add("bullets", new Bullet(player, bulletSprite));
 	socket.emit("upload bullets", game.get("bullets"));
 });
+
+const bulletSprite = sprites.find(sprite => sprite.classList.contains("bullet"));
+function updateBullet (bullet, deltatime) {
+	bullet.position = Vector2.from(bullet.position).add(Vector2.lenDir(bullet.speed * deltatime, bullet.direction - 90));
+	ctx.save();
+	ctx.globalAlpha = Math.min(1, bullet.__LIFETIME / 30);
+	ctx.translate(bullet.position.x, bullet.position.y);
+	ctx.rotate(bullet.direction * radToDeg);
+	ctx.drawImage(bulletSprite, 0, 0)
+	ctx.restore();
+	bullet.__LIFETIME -= 1;
+	if (bullet.__LIFETIME < 0) bullet.dead = true;
+}
+
 void function tick (game) {
 	const deltaTime = game.deltaTime();
 	const player = game.get("player");
@@ -124,7 +138,7 @@ void function tick (game) {
 			game
 			.enter("bullets")
 			.forEach(bullet => {
-				bullet.update(deltaTime);
+				updateBullet(bullet, deltaTime);
 				if (bullet.dead) {
 					const bullets = game.get("bullets");
 					const index = bullets.find(b => b.id === bullet.id);
@@ -168,6 +182,10 @@ socket.on("announce left", name => {
 socket.on("invalid name", name => {
 	console.error(`Username '${name}' already exists!`);
 	registerWall.classList.add("invalid");
+});
+
+socket.on("download bullets", bullets => {
+	game.set("bullets", bullets);
 });
 
 const netTickRate = .25;
