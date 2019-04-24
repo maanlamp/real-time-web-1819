@@ -63,7 +63,7 @@ io.on("connection", socket => {
 	});
 
 	socket.on("kick", name => {
-		if (!name) return playerDB = new Array();
+		if (!name) return playerDB.length = 0;
 		const index = playerDB.find(player => player.name === name);
 		playerDB.splice(index, 1);
 	});
