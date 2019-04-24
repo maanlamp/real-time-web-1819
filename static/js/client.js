@@ -201,7 +201,7 @@ socket.on("registered", player => {
 });
 
 setInterval(() => {
-	socket.emit("request others");
+	socket.emit("request others", game.get("player"));
 }, netTickRate);
 
 socket.on("update others", others => {
