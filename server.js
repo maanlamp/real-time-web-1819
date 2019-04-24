@@ -43,11 +43,11 @@ io.on("connection", socket => {
 		socket.emit("update others", playerDB.filter(player => player.name !== uploadedPlayer.name));
 	});
 
-	socket.on("upload bullets", bullets => {
-		bulletDB.length = 0;
-		bulletDB.push(...bullets);
-		socket.broadcast.emit("download bullets", bulletDB);
-	});
+	// socket.on("upload bullets", bullets => {
+	// 	bulletDB.length = 0;
+	// 	bulletDB.push(...bullets);
+	// 	socket.broadcast.emit("download bullets", bulletDB);
+	// });
 
 	socket.on("disconnect", () => {
 		const index = playerDB.findIndex(player => player.id === socket.id);
