@@ -25,6 +25,7 @@ void async function createMainView () {
 		.set("bullets", new Array())
 		.set("max speed", 10)
 		.set("acceleration", 10)
+		.set("speed", 0)
 		.set("sprites", Array.from(document.querySelectorAll(".sprites img")))
 		.enter("viewport")
 			.clear()
@@ -45,6 +46,7 @@ const ctx = game.get("viewport").__CTX;
 function draw (player, outline = false) {
 	if (!player) return;
 	ctx.save();
+	ctx.globalAlpha = player.dead ? .33 : 1;
 	ctx.translate(player.position.x, player.position.y);
 	ctx.scale(player.scale, player.scale);
 	if (outline) {
@@ -58,13 +60,11 @@ function draw (player, outline = false) {
 	ctx.fillText(player.name, 0, sprites[player.sprite].height/2 + 24);
 	ctx.rotate(player.direction * radToDeg);
 	ctx.drawImage(sprites[player.sprite], -sprites[player.sprite].width/2, -sprites[player.sprite].height/2);
-	ctx.restore();
-
-	ctx.save();
-	ctx.translate(player.position.x, player.position.y + sprites[player.sprite].height/2 + 40);
-	ctx.fillStyle = "gray";
-	ctx.fillRect(-50, 0, 100, 5);
+	ctx.rotate(-player.direction * radToDeg);
+	ctx.translate(0, sprites[player.sprite].height/2 + 40);
 	ctx.fillStyle = "red";
+	ctx.fillRect(-50, 0, 100, 5);
+	ctx.fillStyle = "lime";
 	ctx.fillRect(-50, 0, 100 * player.health / 1000, 5);
 	ctx.restore();
 }
@@ -73,7 +73,6 @@ let fwd = false;
 let bwd = false;
 let lft = false;
 let rgt = false;
-let spd = 0;
 const frc = 0; //SET TO HIGHER FOR FRICTION, BUT THERES NO FRICTION IN SPACE!!
 window.addEventListener("keydown", event => {
 	switch (event.key.toLowerCase()) {
@@ -98,9 +97,11 @@ window.addEventListener("keyup", event => {
 	socket.emit("upload bullets", game.get("bullets"));
 });
 
-const bulletSprite = sprites.find(sprite => sprite.classList.contains("bullet"));
+const bulletSprite = sprites.splice(sprites.findIndex(sprite => sprite.classList.contains("bullet")), 1)[0];
 function updateBullet (bullet, deltatime) {
-	bullet.position = Vector2.from(bullet.position).add(Vector2.lenDir(bullet.speed * deltatime, bullet.direction - 90));
+	bullet.position = Vector2
+		.from(bullet.position)
+		.add(Vector2.lenDir(bullet.speed * deltatime, bullet.direction - 90));
 	ctx.save();
 	ctx.globalAlpha = Math.min(1, bullet.__LIFETIME / 30);
 	ctx.translate(bullet.position.x, bullet.position.y);
@@ -109,22 +110,26 @@ function updateBullet (bullet, deltatime) {
 	ctx.restore();
 	bullet.__LIFETIME -= 1;
 	if (bullet.__LIFETIME < 0) bullet.dead = true;
+	game.get("others").forEach(other => {
+		if (bullet.position.distance(other.position) > 50) return;
+		bullet.dead = true;
+		socket.emit("broadcast hit", game.get("player"), other);
+	});
 }
 
 void function tick (game) {
 	const deltaTime = game.deltaTime();
 	const player = game.get("player");
 	const room = game.get("room");
-	if (player) {
+	if (player && !player.dead) {
 		player.position = Vector2.from(player.position);
 		if (lft) player.direction -= deltaTime * 350;
 		if (rgt) player.direction += deltaTime * 350;
-		if (bwd && spd > 0) spd -= game.get("acceleration") * deltaTime;
-		if (fwd && spd < game.get("max speed")) spd += game.get("acceleration") * deltaTime;
-		else if (spd > 0) spd -= frc;
-		else if (spd < 0) spd = 0;
-		player.position.add(Vector2.lenDir(spd, player.direction - 90));
-		player.speed = spd;
+		if (bwd && player.speed > 0) player.speed -= game.get("acceleration") * deltaTime;
+		if (fwd && player.speed < game.get("max speed")) player.speed += game.get("acceleration") * deltaTime;
+		else if (player.speed > 0) player.speed -= frc;
+		else if (player.speed < 0) player.speed = 0;
+		player.position.add(Vector2.lenDir(player.speed, player.direction - 90));
 		if (player.position.x + sprites[player.sprite].width/2 < 0) player.position.x = room.width + sprites[player.sprite].width/2;
 		if (player.position.x - sprites[player.sprite].width/2 > room.width) player.position.x = -sprites[player.sprite].width/2;
 		if (player.position.y + sprites[player.sprite].height/2 < 0) player.position.y = room.height + sprites[player.sprite].height/2;
@@ -152,7 +157,7 @@ void function tick (game) {
 			.text(fpsFromDeltatime(deltaTime), 12, 18, "stroke");
 	if (player) game
 		.enter("viewport")
-			.text("Speed: " + String(Math.round(spd * 10)).replace(/^(\d)$/, "0$1"), 46, 40, "stroke");
+			.text("Speed: " + String(Math.round(player.speed * 10)).replace(/^(\d)$/, "0$1"), 46, 40, "stroke");
 	return requestAnimationFrame(timestamp => {
 		game.update(timestamp);
 		tick(game)});
@@ -189,7 +194,7 @@ socket.on("download bullets", bullets => {
 	game.set("bullets", bullets);
 });
 
-const netTickRate = .25;
+const netTickRate = 1000 * .033;
 socket.on("registered", player => {
 	game
 		.set("player", player);
@@ -208,6 +213,28 @@ setInterval(() => {
 socket.on("update others", others => {
 	game.set("others", others);
 });
+
+socket.on("hit", (shooter, reciever) => {
+	const player = game.get("player");
+	if (reciever.name !== player.name) return;
+	if (player.dead) return;
+	player.health -= 100;
+	if (player.health <= 0) die(shooter, player);
+});
+
+function die (shooter, player) {
+	player.dead = true;
+	//Accredit shooter for killing player
+	setTimeout(() => {
+		player.dead = false;
+		player.position.x = Math.floor(Math.random() * game.get("room").width);
+		player.position.y = Math.floor(Math.random() * game.get("room").height);
+		player.direction = Math.floor(Math.random() * 359);
+		player.sprite = Math.floor(Math.random() * sprites.length);
+		player.health = 1000;
+		player.speed = 0;
+	}, 5000);
+}
 
 window.kick = function (name) {
 	game.set("others", new Array());

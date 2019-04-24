@@ -151,7 +151,7 @@ export default class Vector2 {
 	}
 
 	subtract (other, otherOther = null) {
-		if (other instanceof Vector2) {
+		if (other.x && other.y) {
 			this.x -= other.x;
 			this.y -= other.y;
 		} else if (other.constructor.name === "Number") {

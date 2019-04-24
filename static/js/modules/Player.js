@@ -8,5 +8,7 @@ export default class Player {
 		this.sprite = sprite;
 		this.health = 1000;
 		this.scale = 1;
+		this.dead = false;
+		this.speed = 0;
 	}
 }

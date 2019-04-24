@@ -42,7 +42,7 @@ io.on("connection", socket => {
 		const index = playerDB.findIndex(player => player.name === uploadedPlayer.name);
 		playerDB.splice(index, 1, uploadedPlayer); //replace old player;
 	});
-	
+
 	socket.on("request others", uploadedPlayer => {
 		if (!uploadedPlayer) uploadedPlayer = {};
 		socket.emit("update others", playerDB.filter(player => player.name !== uploadedPlayer.name));
@@ -60,6 +60,10 @@ io.on("connection", socket => {
 		const player = playerDB.splice(index, 1)[0];
 		io.sockets.emit("announce left", player.name);
 		log(`${playerDB.length} ${inflect("player", playerDB.length)} online.`);
+	});
+
+	socket.on("broadcast hit", (shooter, reciever) => {
+		io.sockets.emit("hit", shooter, reciever);
 	});
 
 	socket.on("kick", name => {
