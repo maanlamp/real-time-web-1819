@@ -45,8 +45,8 @@ const ctx = game.get("viewport").__CTX;
 function draw (player, outline = false) {
 	if (!player) return;
 	ctx.save();
-	ctx.scale(player.scale, player.scale)
 	ctx.translate(player.position.x, player.position.y);
+	ctx.scale(player.scale, player.scale);
 	if (outline) {
 		ctx.lineWidth = 2;
 		ctx.beginPath();
