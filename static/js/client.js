@@ -201,5 +201,6 @@ socket.on("registered", player => {
 });
 
 socket.on("update others", others => {
+	console.log("yeet");
 	game.set("others", others);
 });
