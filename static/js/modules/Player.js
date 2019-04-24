@@ -7,5 +7,6 @@ export default class Player {
 		this.direction = direction;
 		this.sprite = sprite;
 		this.health = 1000;
+		this.scale = 1;
 	}
 }
