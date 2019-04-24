@@ -200,7 +200,10 @@ socket.on("registered", player => {
 	}, netTickRate);
 });
 
+setInterval(() => {
+	socket.emit("request others");
+}, netTickRate);
+
 socket.on("update others", others => {
-	console.log("yeet");
 	game.set("others", others);
 });

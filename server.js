@@ -41,8 +41,12 @@ io.on("connection", socket => {
 	socket.on("upload player", uploadedPlayer => {
 		const index = playerDB.findIndex(player => player.name === uploadedPlayer.name);
 		playerDB.splice(index, 1, uploadedPlayer); //replace old player;
-		socket.emit("update others", playerDB.filter(player => player.name !== uploadedPlayer.name));
 	});
+	
+	socket.on("request others", uploadedPlayer => {
+		if (!uploadedPlayer) uploadedPlayer = {};
+		socket.emit("update others", playerDB.filter(player => player.name !== uploadedPlayer.name));
+	})
 
 	socket.on("upload bullets", bullets => {
 		bulletDB.length = 0;
