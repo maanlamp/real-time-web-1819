@@ -15,6 +15,7 @@ app
 	.get("/", routes.home);
 
 function log (msg) {
+	if (process.env.PORT) return;
 	process.stdout.clearLine();
 	process.stdout.cursorTo(0);
 	process.stdout.write(msg);
