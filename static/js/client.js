@@ -23,6 +23,7 @@ void async function createMainView () {
 		.set("room", room)
 		.set("others", new Array())
 		.set("bullets", new Array())
+		.set("max speed", 10)
 		.set("sprites", Array.from(document.querySelectorAll(".sprites img")))
 		.enter("viewport")
 			.clear()
@@ -73,7 +74,6 @@ let rgt = false;
 let spd = 0;
 const acc = 10;
 const frc = 0; //SET TO HIGHER FOR FRICTION, BUT THERES NO FRICTION IN SPACE!!
-const maxSpeed = 10;
 window.addEventListener("keydown", event => {
 	switch (event.key.toLowerCase()) {
 		case "w": {return fwd = true};
@@ -105,7 +105,7 @@ void function tick (game) {
 		if (lft) player.direction -= deltaTime * 350;
 		if (rgt) player.direction += deltaTime * 350;
 		if (bwd && spd > 0) spd -= acc * deltaTime;
-		if (fwd && spd < maxSpeed) spd += acc * deltaTime;
+		if (fwd && spd < game.get("max speed")) spd += acc * deltaTime;
 		else if (spd > 0) spd -= frc;
 		else if (spd < 0) spd = 0;
 		player.position.add(Vector2.lenDir(spd, player.direction - 90));
