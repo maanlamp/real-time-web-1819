@@ -12,9 +12,11 @@ body {
 	align-items: center;
 	height: 100vh;
 	background-color: rgb(17, 15, 22);
+	font-size: 2rem;
+	font-family: sans-serif;
 }
 
-.sprites {
+#sprites {
 	position: absolute;
 	pointer-events: none;
 	user-select: none;
@@ -30,7 +32,7 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	backdrop-filter: blur(2px);
+	backdrop-filter: blur(2px) brightness(50%);
 	flex-wrap: wrap;
 	flex-direction: column;
 	transition: opacity 1s ease;
@@ -54,4 +56,20 @@ body {
 
 img {
 	opacity: 0;
+}
+
+#messages {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+} #messages>div {
+	animation: opa 1s ease 5s;
+	opacity: 1;
+	color: white;
+} @keyframes opa {
+	from {
+		opacity: 1;
+	} to {
+		opacity: 0;
+	}
 }

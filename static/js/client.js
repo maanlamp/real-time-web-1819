@@ -27,7 +27,8 @@ void async function createMainView () {
 		.set("max speed", 10)
 		.set("acceleration", 10)
 		.set("speed", 0)
-		.set("sprites", Array.from(document.querySelectorAll(".sprites img")))
+		.set("turnspeed", 350)
+		.set("sprites", Array.from(document.querySelectorAll("#sprites img")))
 		.enter("viewport")
 			.clear()
 			.style(`
@@ -134,9 +135,10 @@ void function tick (game) {
 	const player = game.get("player");
 	const room = game.get("room");
 	if (player && !player.dead) {
+		const turnspeed = Math.min(350, game.get("turnspeed") / player.speed * 4);
 		player.position = Vector2.from(player.position);
-		if (lft) player.direction -= deltaTime * 350;
-		if (rgt) player.direction += deltaTime * 350;
+		if (lft) player.direction -= deltaTime * turnspeed;
+		if (rgt) player.direction += deltaTime * turnspeed;
 		if (bwd && player.speed > 0) player.speed -= game.get("acceleration") * deltaTime;
 		if (fwd && player.speed < game.get("max speed")) player.speed += game.get("acceleration") * deltaTime;
 		else if (player.speed > 0) player.speed -= frc;
@@ -196,15 +198,14 @@ nameInput.addEventListener("keypress", event => {
 });
 
 socket.on("announce joined", name => {
-	console.log(`${name} joined the game!`);
+	announce(`${name} joined the game!`);
 });
 
 socket.on("announce left", name => {
-	console.log(`${name} left the game!`);
+	announce(`${name} left the game!`);
 });
 
 socket.on("invalid name", name => {
-	console.error(`Username '${name}' already exists!`);
 	registerWall.classList.add("invalid");
 });
 
@@ -258,7 +259,7 @@ function die (shooter, player) {
 
 socket.on("got kill", (shooter, reciever) => {
 	const player = game.get("player");
-	console.log(`${shooter.name} killed ${reciever.name}`);
+	announce(`${shooter.name} killed ${reciever.name}`);
 	if (shooter.name !== player.name) return;
 	player.score += 100;
 });
@@ -266,4 +267,13 @@ socket.on("got kill", (shooter, reciever) => {
 window.kick = function (name) {
 	game.set("others", new Array());
 	socket.emit("kick", name);
+}
+
+const messages = document.querySelector("#messages");
+function announce (msg) {
+	const element = document.createElement("DIV");
+	element.innerText = msg;
+	element.addEventListener("animationend", () => element.remove());
+	while (messages.childElementCount > 10) messages.firstElementChild.remove();
+	messages.append(element);
 }
