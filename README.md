@@ -2,6 +2,7 @@
 
 ## Live demo 💻
 ![An animated image showing players competing against eachother.](demo.gif)
+
 [Check out the live demo!](https://bittheory.herokuapp.com)
 
 ## Concept 💭
