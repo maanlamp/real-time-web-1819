@@ -7,6 +7,7 @@ import keybinds from "/data/keybinds.js";
 import Player from "./modules/Player.js";
 import Vector2 from "./modules/Vector2.js";
 import Bullet from "./modules/Bullet.js";
+import { loadImage } from "./modules/Load.js";
 
 const socket = io();
 const game = new Game();
@@ -34,10 +35,21 @@ void async function createMainView () {
 				image-smoothing: true high;
 				text-align: center`);
 
-		//DEBUG
-		game.get("viewport").__CTX.font = "18px sans-serif";
-		game.get("viewport").__CTX.strokeStyle = "lime";
-		game.get("viewport").__CTX.textAlign = "center";
+	//DEBUG
+	game.get("viewport").__CTX.font = "18px sans-serif";
+	game.get("viewport").__CTX.strokeStyle = "lime";
+	game.get("viewport").__CTX.textAlign = "center";
+	fetch("https://cors-anywhere.herokuapp.com/http://hubblesite.org/api/v3/images?page=all")
+		.then(res => res.json())
+		.then(arr => arr.filter(item => item.name.match(/nebula/i)))
+		.then(arr => arr[Math.floor(Math.random()*arr.length)].id)
+		.then(id => fetch(`https://cors-anywhere.herokuapp.com/http://hubblesite.org/api/v3/image/${id}`))
+		.then(res => res.json())
+		.then(json => json.image_files[0])
+		.then(img => game.set("background", img))
+		.then(() => loadImage(game.get("background").file_url))
+		.then(img => game.get("background").img = img)
+		.catch(err => console.error("Gaat helemaal mis!\n" + err));
 }();
 
 const radToDeg = Math.PI / 180;
@@ -57,7 +69,7 @@ function draw (player, outline = false) {
 		ctx.lineWidth = 1;
 	}
 	ctx.fillStyle = "lime";
-	ctx.fillText(player.name, 0, sprites[player.sprite].height/2 + 24);
+	ctx.fillText(player.name + ": " + player.score, 0, sprites[player.sprite].height/2 + 24);
 	ctx.rotate(player.direction * radToDeg);
 	ctx.drawImage(sprites[player.sprite], -sprites[player.sprite].width/2, -sprites[player.sprite].height/2);
 	ctx.rotate(-player.direction * radToDeg);
@@ -92,7 +104,7 @@ window.addEventListener("keyup", event => {
 });
 window.addEventListener("keyup", event => {
 	const player = game.get("player");
-	if ((!player) || event.key !== " ") return;
+	if ((!player) || event.key !== " " || player.dead) return;
 	game.add("bullets", new Bullet(player, bulletSprite));
 	socket.emit("upload bullets", game.get("bullets"));
 });
@@ -135,11 +147,17 @@ void function tick (game) {
 		if (player.position.y + sprites[player.sprite].height/2 < 0) player.position.y = room.height + sprites[player.sprite].height/2;
 		if (player.position.y - sprites[player.sprite].height/2 > room.height) player.position.y = -sprites[player.sprite].height/2;
 	}
-	game
+	const bg = game.get("background");
+	if (bg && bg.img) {
+		game
 		.enter("viewport")
-			.fillRect()
-			.exit()
-		.enter("others")
+			.drawImage(bg.img, 0, 0, bg.width, bg.height, 0, 0, room.width, room.height);
+	} else {
+		game
+		.enter("viewport")
+			.fillRect();
+	}
+	game.enter("others")
 			.forEach(player => draw(player));
 			game
 			.enter("bullets")
@@ -218,13 +236,14 @@ socket.on("hit", (shooter, reciever) => {
 	const player = game.get("player");
 	if (reciever.name !== player.name) return;
 	if (player.dead) return;
+	if (shooter.name === player.name) return;
 	player.health -= 100;
 	if (player.health <= 0) die(shooter, player);
 });
 
 function die (shooter, player) {
 	player.dead = true;
-	//Accredit shooter for killing player
+	socket.emit("broadcast kill", shooter, player);
 	setTimeout(() => {
 		player.dead = false;
 		player.position.x = Math.floor(Math.random() * game.get("room").width);
@@ -233,8 +252,16 @@ function die (shooter, player) {
 		player.sprite = Math.floor(Math.random() * sprites.length);
 		player.health = 1000;
 		player.speed = 0;
+		player.score = 0;
 	}, 5000);
 }
+
+socket.on("got kill", (shooter, reciever) => {
+	const player = game.get("player");
+	console.log(`${shooter.name} killed ${reciever.name}`);
+	if (shooter.name !== player.name) return;
+	player.score += 100;
+});
 
 window.kick = function (name) {
 	game.set("others", new Array());

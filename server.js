@@ -66,6 +66,10 @@ io.on("connection", socket => {
 		io.sockets.emit("hit", shooter, reciever);
 	});
 
+	socket.on("broadcast kill", (shooter, reciever) => {
+		io.sockets.emit("got kill", shooter, reciever);
+	});
+
 	socket.on("kick", name => {
 		Object.values(io.sockets).forEach(([id, socket]) => {
 			socket.disconnect();

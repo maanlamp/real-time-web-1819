@@ -10,5 +10,6 @@ export default class Player {
 		this.scale = 1;
 		this.dead = false;
 		this.speed = 0;
+		this.score = 0;
 	}
 }
