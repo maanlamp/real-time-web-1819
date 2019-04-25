@@ -253,7 +253,6 @@ function die (shooter, player) {
 		player.sprite = Math.floor(Math.random() * sprites.length);
 		player.health = 1000;
 		player.speed = 0;
-		player.score = 0;
 	}, 5000);
 }
 
