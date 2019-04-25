@@ -135,7 +135,7 @@ void function tick (game) {
 	const player = game.get("player");
 	const room = game.get("room");
 	if (player && !player.dead) {
-		const turnspeed = Math.min(350, game.get("turnspeed") / player.speed * 4);
+		const turnspeed = Math.min(350, game.get("turnspeed") / player.speed * 2);
 		player.position = Vector2.from(player.position);
 		if (lft) player.direction -= deltaTime * turnspeed;
 		if (rgt) player.direction += deltaTime * turnspeed;
