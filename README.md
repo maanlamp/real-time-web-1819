@@ -6,7 +6,13 @@
 [Check out the live demo!](https://bittheory.herokuapp.com)
 
 ## Concept 💭
-Yeet
+I made a game in which you can fly around in space with your _space buddies_ 🚀. When you have gained their trust, you can shoot them down and gain points, because that's what really matters.
+
+The actual goal is primarily to have fun, but the best way to do that is to get the highest score.
+
+You gain score through doing the last damage to another player before they die. That way, you can shoot someone down yourself, or you can snipe someone else's kill just as they are about to finish their prey off -- cool stuff.
+
+To make it a bit difficult, you can hardly turn at all when moving quickly, but when slowing down you can turn much quicker. When one of your _space buddies/enemies_ is pursuing you at high _space speeds_, you can do a quick _space manouvre_ to get them off your tail and get a few pot shots in. It's really fun!
 
 <br/>
 
