@@ -1,47 +1,130 @@
 # Real-Time Web @cmda-minor-web · 2018-2019
 
-Ik ben een real-time "Asteroids"-achtige multiplayer game aan het maken.
+## Live demo 💻
+![An animated image showing players competing against eachother.](demo.gif)
+[Check out the live demo!](https://bittheory.herokuapp.com)
 
-![Pew Pew!](./demo.gif)
+## Concept 💭
+Yeet
 
-_**PEW PEW!**_
+<br/>
 
-## Plan voor de laatste week:
-### API die ik wil gebruiken
-Voor het spel dat ik wil maken, wil ik random death messages halen uit een API. Als een speler dan een andere speler kapotschiet verschijnt er ergens op het scherm een grappige reden waarom. Ik zat te denken aan iets als [Perchance Deth Generator](https://perchance.org/random-cause-of-death-generator) of iets dergelijks. Ik heb nog steeds geen geweldig idee voor API.
+## Glossary 📚
+<details>
+  <summary>Click here to expand</summary>
 
-### Data lifecycle
-![Pew Pew!](./lifecycle.png)
+- [Real-Time Web @cmda-minor-web · 2018-2019](#real-time-web-cmda-minor-web--2018-2019)
+	- [Live demo 💻](#live-demo-%F0%9F%92%BB)
+	- [Concept 💭](#concept-%F0%9F%92%AD)
+	- [Glossary 📚](#glossary-%F0%9F%93%9A)
+	- [Getting started 🏁](#getting-started-%F0%9F%8F%81)
+	- [APIs 🐒🐒](#apis-%F0%9F%90%92%F0%9F%90%92)
+	- [Data lifecycles ♻️](#data-lifecycles-%E2%99%BB%EF%B8%8F)
+	- [Wishlist ❓](#wishlist-%E2%9D%93)
+	- [Licence 📜](#licence-%F0%9F%93%9C)
+</details>
+<br/>
+<br/>
 
-- Een client vraagt eerst de gebruiker om een username in te vullen.
-- Via de `register` event vraagt de client aan de server of die username oké is.
-  - Zo niet, wordt de `invalid` event afgevuurd en door de client ge"interpreteerd als invalide input.
-  - Zo wel, wordt de `registered` event afgevuurd, waardoor de speler in de database wordt opgeslagen, en in de game van de client wordt geplaatst.
-- Vervolgens wordt door elke client per gametick een `update` event gestuurd, die de positie van die player meegeeft.
-- De server update daarop de positie van die speler in de database, en stuurt op zich dan weer een `update` event terug.
-- Hierna slaan alle clients de posities van alle andere ruimteschepen op en visualiseren(/drawen) ze.
+## Getting started 🏁
+```sh
+#Clone the repo
+git clone https://github.com/maanlamp/real-time-web-1819.git;
 
-### Waar wil ik feedback op?
-- Is deze API _goed genoeg_?
-- Wat zou een betere API zijn (zelfs als het een goede is).
-- Is er een betere manier om de multiplayer te implementeren (minder updates en interpoleren tussenin, etc.)?
+#Change into the newly made directory
+cd real-time-web-1819;
 
-<!-- Add a link to your live demo in Github Pages 🌐-->
+#install dependencies
+npm i;
 
-<!-- ☝️ replace this description with a description of your own work -->
-
-<!-- Add a nice image here at the end of the week, showing off your shiny frontend 📸 -->
-
-<!-- Maybe a table of contents here? 📚 -->
-
-<!-- How about a section that describes how to install this project? 🤓 -->
-
+#Start the server
+npm run start;
+```
 <!-- ...but how does one use this project? What are its features 🤔 -->
+<br/>
 
-<!-- What external data source is featured in your project and what are its properties 🌠 -->
+## APIs 🐒🐒
+I make use of the bulle image API to get a background image for the game.
 
-<!-- This would be a good place for your data life cycle ♻️-->
+The Hubble telescope has made a lot of photos, which you can all get summarised by visiting the link http://hubblesite.org/api/v3/images?page=all.
+This returns the following array:
+<details>
+  <summary>Hubble image array</summary>
 
-<!-- Maybe a checklist of done stuff and stuff still on your wishlist? ✅ -->
+```json
+[
+  {
+    "id": 4490,
+    "name": "Large Magellanic Cloud (DSS View) with Star Cluster Overlay (Hubble)",
+    "news_name": "a",
+    "collection": "news"
+  },
+  {
+    "id": 4489,
+    "name": "Three Steps to the Hubble Constant",
+    "news_name": "b",
+    "collection": "news"
+  },
+  {
+    "id": 4491,
+    "name": "Compass Image of Large Magellanic Cloud",
+    "news_name": "c",
+    "collection": "news"
+  },
+  ...
+]
+```
+</details>
+<br/>
 
-<!-- How about a license here? 📜 (or is it a licence?) 🤷 -->
+To get the actual image from the API, you have to send a GET request to the http://hubblesite.org/api/v3/image/:id endpoint, where `:id` is one of the id's fetched from the image summary. This returns a JSON object containing information about the image, and the URI's needed to load the image. It looks somewhat like this:
+<details>
+  <summary>Hubble image array</summary>
+
+```json
+{
+  "name": "Southern Crab Nebula",
+  "description": ...,
+  "credits": ...,
+  "news_name": "a",
+  "mission": "hubble",
+  "collection": "news",
+  "image_files": [
+    {
+      "file_url": "https://media.stsci.edu/uploads/image_file/image_attachment/31334/STSCI-H-p1915a-z-853x1000.png",
+      "file_size": 1451341,
+      "width": 853,
+      "height": 1000
+    },
+    ...
+  ]
+}
+```
+</details>
+<br/>
+
+I filter the summary of images to only contain images of nebulae [(plural of nebula fyi.)](https://en.wikipedia.org/wiki/Nebula), select a random id out of the filtered summary, get its `"image_files"`, select the first (`0th`) file_url, and draw it onto the game's background. It serves some _stellar_ images!
+- https://media.stsci.edu/uploads/image_file/image_attachment/31334/STSCI-H-p1915a-z-853x1000.png
+- https://media.stsci.edu/uploads/image_file/image_attachment/31639/STScI-H-favorites-p1840a-480x630.jpg
+- https://media.stsci.edu/uploads/image_file/image_attachment/31006/STSCI-H-p1842c-z-1000x879.png
+
+<br/>
+
+## Data lifecycles ♻️
+Every player uploads itself to the sever every 33 milliseconds (~30 times per second). The server then sets/updates that player value in the _player database_. The server then fetches all players except the newly uploaded one, and then dispatches an event to the uploading socket. That event downloads the other players for drawing in the requestor client. The same cycle happens for bullets.
+
+![Visualisation of the data lifecycle within the game.](datalife.png)
+
+When a player joins, it is automatically uploaded through this generic lifecycle, and when the socket is disconnected, it removes the corresponding player from the database.
+
+<br/>
+
+## Wishlist ❓
+- Netcode is done really naively -- it uploads and download player positions at about 30 times per second. This makes it really laggy sometimes when the server gets inevitably overloaded. I wanted to look more into volatile packets. Maybe even reduce the synchronisation rate to 15 or even 5 times a second, and only send player speed and direction, so that all clients can simulate the missing data themselves.
+- I used my own game engine to make this game, that I'm developing alongside this repo. As a side effect, the engine I'm using now is outdated and underperforming (compared to the engine repo) because it would require rewriting the entire game to use the new engine.
+- The background images fetched and filtered from the hubble API aren't filtered strictly enough. Some images are way too small, not visually pleasing, not correctly shaped or not actually a picture at all ([christmas cards for example](https://media.stsci.edu/uploads/image_file/image_attachment/31109/STSCI-HST-holiday039-pr1821-4x6.png)).
+
+<br/>
+
+## Licence 📜
+Licensed under MIT
