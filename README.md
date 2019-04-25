@@ -20,15 +20,14 @@ To make it a bit difficult, you can hardly turn at all when moving quickly, but 
 <details>
   <summary>Click here to expand</summary>
 
-- [Real-Time Web @cmda-minor-web · 2018-2019](#real-time-web-cmda-minor-web--2018-2019)
-	- [Live demo 💻](#live-demo-%F0%9F%92%BB)
-	- [Concept 💭](#concept-%F0%9F%92%AD)
-	- [Glossary 📚](#glossary-%F0%9F%93%9A)
-	- [Getting started 🏁](#getting-started-%F0%9F%8F%81)
-	- [APIs 🐒🐒](#apis-%F0%9F%90%92%F0%9F%90%92)
-	- [Data lifecycles ♻️](#data-lifecycles-%E2%99%BB%EF%B8%8F)
-	- [Wishlist ❓](#wishlist-%E2%9D%93)
-	- [Licence 📜](#licence-%F0%9F%93%9C)
+- [Live demo 💻](#live-demo-)
+- [Concept 💭](#concept-)
+- [Glossary 📚](#glossary-)
+- [Getting started 🏁](#getting-started-)
+- [APIs 🐒🐒](#apis-)
+- [Data lifecycles ♻️](#data-lifecycles-)
+- [Wishlist ❓](#wishlist-)
+- [Licence 📜](#licence-)
 </details>
 <br/>
 <br/>
